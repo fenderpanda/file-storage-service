@@ -1,0 +1,62 @@
+app:
+  directory:
+    uploads: E:\Microservices\Keycloak_Spring_Boot_OAuth2.0\uploads\
+
+server:
+  port: 8002
+  servlet:
+    context-path: /api
+  tomcat:
+    max-http-form-post-size: -1
+    max-swallow-size: -1
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  datasource:
+    url: jdbc:mysql://localhost:3306/cool_translator?useSSL=false
+    username: translator
+    password: translator
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/SpringBootKeycloak
+  cloud:
+    function:
+      definition: onFileTranslationFailed;onFileTranslated
+    stream:
+      kafka:
+        binder:
+          brokers: localhost
+          defaultBrokerPort: 9092
+          autoCreateTopics: false
+          consumerProperties:
+            allow.auto.create.topics: false
+      bindings:
+        onFileTranslationFailed-in-0:
+          destination: json.cool_translator.file.translation.failed
+          group: failedTranslationGroup
+        onFileTranslated-in-0:
+          destination: json.cool_translator.file.translated
+          group: translatedGroup
+        onFileTranslated-out-0:
+          destination: json.cool_translator.file.completed
+
+logging:
+#  file:
+#    name: E:\Mircoservices\Keycloak_Spring_Boot_OAuth2.0\logs\file-storage-service.log
+  level:
+    com.example.filestorage.exception.GlobalExceptionHandler: ERROR
+    org:
+      springframework:
+        security: TRACE
